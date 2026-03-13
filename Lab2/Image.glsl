@@ -146,10 +146,12 @@ Surface sdPlayerShip(vec3 p) {
     Surface hull = Surface(sdHull(hullPos, 1., 1.7, 0.4), hullColor);
     scene = opU(scene, hull);
     
-    vec3 bridgePos = q - vec3(0.4, 0.0, 0);
-    Surface bridge = Surface(sdBridge(bridgePos, 0.4), bridgeColor);
-    scene = opU(scene, bridge);
-    
+    vec3 bridgePos1 = q - vec3(0.4, 0.0, 0);
+    vec3 bridgePos2 = q + vec3(0.4, 0.0, 0);
+    Surface bridge1 = Surface(sdBridge(bridgePos1, 0.4), bridgeColor);
+    scene = opU(scene, bridge1);
+    Surface bridge2 = Surface(sdBridge((bridgePos2),0.4), bridgeColor);
+    scene = opU(scene, bridge2);
 
     vec3 mastPos = q - vec3(0, 0.0, 0);
     Surface mast = Surface(sdMast(mastPos, 1.0), bridgeColor);
@@ -161,10 +163,12 @@ Surface sdPlayerShip(vec3 p) {
     
     // пушка читает буффер 2 
     vec4 cannonData = texelFetch(iChannel1, ivec2(0,1), 0);
-    vec3 cannonPos = q - vec3(0.4, 0.1, 0.0);
-    Surface cannon = Surface(sdCannon(cannonPos, 0.6, cannonData.xy), cannonColor);
-    scene = opU(scene, cannon);
-    
+    vec3 cannon1Pos = q - vec3(0.4, 0.1, 0.0);
+    vec3 cannon2Pos = q - vec3(-0.4, 0.1,0.0);
+    Surface cannon1 = Surface(sdCannon(cannon1Pos, 0.6, cannonData.xy), cannonColor);
+    scene = opU(scene, cannon1);
+    Surface cannon2 = Surface(sdCannon(cannon2Pos, 0.6, cannonData.xy), cannonColor);
+    scene = opU(scene, cannon2);
 
     
     return scene;
@@ -223,10 +227,9 @@ Surface sdWater(vec3 p) {
     return Surface(waterDist, waterColor);
 }
 
-Surface sdBullet(vec3 p) {
-    vec4 bullet = texelFetch(iChannel3, ivec2(0,0), 0);
-    if (bullet.w > 0.5) {
-        float bulletDist = sdSphere(p - bullet.xyz, 0.15);
+Surface sdBullet(vec3 p, vec4 bulletData) {
+    if (bulletData.w > 0.5) {
+        float bulletDist = sdSphere(p - bulletData.xyz, 0.15);
         return Surface(bulletDist, vec3(1.0, 0.9, 0.1));
     }
     return Surface(MAX_DIST, vec3(0.0));
@@ -268,8 +271,13 @@ Surface sdScene(vec3 p) {
         scene = opU(scene, enemyShip2);
     }
     
-    Surface bullet = sdBullet(p);
-    scene = opU(scene, bullet);
+    vec4 bullet1 = texelFetch(iChannel3, ivec2(0,0), 0);
+    Surface bulletSurf1 = sdBullet(p, bullet1);
+    scene = opU(scene, bulletSurf1);
+
+    vec4 bullet2 = texelFetch(iChannel3, ivec2(6,0), 0);
+    Surface bulletSurf2 = sdBullet(p, bullet2);
+    scene = opU(scene, bulletSurf2);
     
     Surface explosion = sdExplosion(p);
     scene = opU(scene, explosion);
