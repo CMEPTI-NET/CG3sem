@@ -18,14 +18,15 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
     vec2 offset = texelFetch( iChannel0, ivec2(0, 0), 0).xy; //Возвращает значение смещения от последнего кадра
 
-    
+    offset.y = 0.;
     
     offset = handleKeyboard(offset);
     
     if(offset.x < 0.) {offset.x = 0.;}
     if(offset.x > 1.) {offset.x = 1.;}
     
-    
+    if(offset.y > 0.) {offset.y = 1.;}
+    if(offset.y < 0.) {offset.y = -1.;}
 
     fragColor = vec4(offset, 0, 0);
 }

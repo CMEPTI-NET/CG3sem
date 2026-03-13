@@ -75,7 +75,7 @@ Surface sdCar(vec2 uv){
     float keyboardX = texelFetch( iChannel0, ivec2(0,0),0).x;
     offset.x += keyboardX * (Xuv*(1. - 2.*limit - 0.13));
     
-    float rotateN = 0.;
+    float rotateN = texelFetch( iChannel0, ivec2(0,0),0).y * 60.0;;
     vec2 rotateUv = rotate(uv - offset,radians(rotateN)) + offset;
     
     float LocalAccuracy = accuracy * 0.1;
@@ -93,9 +93,9 @@ Surface sdCar(vec2 uv){
     dec = sdRectangle(rotateUv,vec2(0.1,0.02),vec2(offset.x,offset.y-0.1),vec3(0.,0.,0.));
     if(s.dist>accuracy && dec.dist <= accuracy) { s = dec;}
     
+    
     dec = sdRectangle(rotateUv,vec2(0.075,0.077),vec2(offset.x,offset.y-0.03),carColor-0.08);//крыша
     if (dec.dist <= LocalAccuracy) {s.color = dec.color;}    
-    
     
     
     return s;
