@@ -6,7 +6,7 @@ const TGAColor Background = TGAColor(45, 45, 45, 255);
 const float PI = 3.14159265358979323846f;
 
 void triangle(Vec3* screen_pts, const Vec3& world_v0, const Vec3& world_v1,
-    const Vec3& world_v2, Vec2* tex_coords, Vec3& face_normal,
+    const Vec3& world_v2, Vec2* tex_coords, Vec3* normals,
     const ShaderUniform& uniform, int width, int height,
     float* zbuffer, TGAImage& image) {
 
@@ -30,11 +30,13 @@ void triangle(Vec3* screen_pts, const Vec3& world_v0, const Vec3& world_v1,
             Vec3 world_pos = world_v0 * bc.x + world_v1 * bc.y + world_v2 * bc.z;
             Vec2 texcoord = tex_coords[0] * bc.x + tex_coords[1] * bc.y + tex_coords[2] * bc.z;
 
+            Vec3 interp_normal = normals[0] * bc.x + normals[1] * bc.y + normals[2] * bc.z;
+
             int idx = x + y * width;
             if (z < zbuffer[idx]) {
                 zbuffer[idx] = z;
 
-                TGAColor color = phongLight(world_pos, face_normal, texcoord, uniform);
+                TGAColor color = phongLight(world_pos, interp_normal, texcoord, uniform);
                 image.set(x, y, color);
             }
         }
@@ -136,12 +138,14 @@ void drawModel(const Model& model, const ShaderUniform& uniform, TGAImage& image
                 const TextureCoord& tc1 = model.texCoords[face.textureId[idx1]];
                 const TextureCoord& tc2 = model.texCoords[face.textureId[idx2]];
 
-                Vec3 normal;
+                Vec3 vertex_normals[3];
                 if (face.normalId.size() >= 3) {
                     const Normal& n0 = model.normals[face.normalId[idx0]];
                     const Normal& n1 = model.normals[face.normalId[idx1]];
                     const Normal& n2 = model.normals[face.normalId[idx2]];
-                    normal = Vec3(n0.x, n0.y, n0.z);
+                    vertex_normals[0] = Vec3(n0.x, n0.y, n0.z);
+                    vertex_normals[1] = Vec3(n1.x, n1.y, n1.z);
+                    vertex_normals[2] = Vec3(n2.x, n2.y, n2.z);
                 }
                 else {
                     Vec3 world_v0(v0.x, v0.y, v0.z);
@@ -149,7 +153,8 @@ void drawModel(const Model& model, const ShaderUniform& uniform, TGAImage& image
                     Vec3 world_v2(v2.x, v2.y, v2.z);
                     Vec3 edge1 = world_v1 - world_v0;
                     Vec3 edge2 = world_v2 - world_v0;
-                    normal = cross(edge1, edge2).normalize();
+                    Vec3 flat_normal = cross(edge1, edge2).normalize();
+                    vertex_normals[0] = vertex_normals[1] = vertex_normals[2] = flat_normal;
                 }
 
                 Vec3 world_v0(v0.x, v0.y, v0.z);
@@ -181,7 +186,7 @@ void drawModel(const Model& model, const ShaderUniform& uniform, TGAImage& image
                 };
 
                 triangle(screen_coords, world_v0, world_v1, world_v2,
-                    texture_coords, normal, uniform, uniform.width, uniform.height, zbuffer, image);
+                    texture_coords, vertex_normals, uniform, uniform.width, uniform.height, zbuffer, image);
             }
         }
     }
